@@ -25,3 +25,53 @@ As a Zephyr RTOS user I want to be able to sychonize threads when accessing comm
 - immediately return with a negative message if the resource is not available and allow the thread to continue.
 - wait for a given time for the resource to become available or return with a negative message.
 <<<
+
+[REQUIREMENT]
+UID: ZEP-SRS-6-2
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Mutex
+TITLE: Mutex Definition at Compile Time
+STATEMENT: >>>
+The Zephyr RTOS shall provide a mechanism to define and initialize a mutex at compile time.
+<<<
+
+[REQUIREMENT]
+UID: ZEP-SRS-6-3
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Mutex
+TITLE: Mutex Definition at Run Time
+STATEMENT: >>>
+The Zephyr RTOS shall provide a mechanism to define and initialize a mutex at run time.
+<<<
+
+[REQUIREMENT]
+UID: ZEP-SRS-6-4
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Mutex
+TITLE: Mutex Initialization Lock Count Zero
+STATEMENT: >>>
+When a mutex is initialized, the Zephyr RTOS shall ensure the lock count is zero.
+<<<
+
+[REQUIREMENT]
+UID: ZEP-SRS-6-5
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Mutex
+TITLE: Mutex Priority Inheritance
+STATEMENT: >>>
+The Zephyr RTOS shall temporarily elevate the priority of a thread that has locked a mutex if a higher priority thread is waiting on the locked mutex
+<<<
+
+[REQUIREMENT]
+UID: ZEP-SRS-6-6
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Mutex
+TITLE: Mutex Priority Inheritance - Configuration
+STATEMENT: >>>
+The Zephyr RTOS shall allow configuration of the maximum priority ceiling for Priority Inheritance
+<<<
