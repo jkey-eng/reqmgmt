@@ -1,0 +1,506 @@
+[DOCUMENT]
+TITLE: Zephyr RTOS Safety Manual
+REQ_PREFIX: SM-
+
+[GRAMMAR]
+IMPORT_FROM_FILE: safety_manual.sgra
+
+[TEXT]
+STATEMENT: >>>
+This safety manual is based on IEC 61508-3 Annex D, with base requirements from
+IEC 61508-2 Annex D.
+
+A safety manual for compliant items provides all the information relating to the functional
+safety of an element that is required to ensure that the system meets the requirements of the
+IEC 61508 series (IEC 61508-4, 3.8.17).
+<<<
+
+[[SECTION]]
+TITLE: Document Control
+
+[TEXT]
+STATEMENT: >>>
+.. list-table::
+   :widths: 30 70
+
+   * - Document Title
+     - Zephyr RTOS Safety Manual
+   * - Document Number
+     - TBD
+   * - Revision
+     - 0.1 (Draft)
+   * - Date
+     - 2026-02-24
+   * - Author(s)
+     - TBD
+   * - Approval Authority
+     - Zephyr Safety Committee
+   * - Status
+     - Draft
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Purpose and Scope
+
+[TEXT]
+STATEMENT: >>>
+This safety manual provides the information required by a system integrator to incorporate
+the Zephyr RTOS into an IEC 61508 safety-related system. It describes the element's
+constraints, configuration, and the obligations placed on the integrator.
+
+The compliant item covered by this manual is the **Zephyr RTOS kernel**. The certification
+scope is limited to the kernel and core OS services as identified by the Zephyr Safety
+Committee. Subsystems outside this scope (networking stacks, Bluetooth, file systems, etc.)
+are not covered.
+
+This document should be read alongside:
+
+- `Zephyr safety overview <https://docs.zephyrproject.org/latest/safety/safety_overview.html>`_
+- `Zephyr kernel documentation <https://docs.zephyrproject.org/latest/kernel/services/index.html>`_
+- `Zephyr security overview <https://docs.zephyrproject.org/latest/security/security-overview.html>`_
+- `Zephyr release notes <https://docs.zephyrproject.org/latest/releases/index.html>`_
+- Software requirements specification (`reqmgmt repository <https://github.com/zephyrproject-rtos/reqmgmt>`_)
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Element Identification and Configuration
+
+[TEXT]
+STATEMENT: >>>
+IEC 61508-3, D.2.2 & D.2.4(h)
+
+.. list-table::
+   :widths: 30 70
+
+   * - Element Name
+     - Zephyr RTOS
+   * - Description
+     - Small-footprint RTOS kernel for resource-constrained embedded systems
+   * - Version
+     - Based on LTS release (currently LTS3: Zephyr 3.7.0, 2024-07-26)
+   * - License
+     - Apache 2.0 (SPDX: Apache-2.0)
+   * - Source Repository
+     - https://github.com/zephyrproject-rtos/zephyr
+
+The version used for integration shall be identified by the git commit hash of the LTS
+release tag. The integrator can verify source integrity by comparing the commit hash
+against the signed tag in the upstream repository.
+
+For a description of the kernel subsystems and their interfaces, refer to the
+`Zephyr kernel documentation <https://docs.zephyrproject.org/latest/kernel/services/index.html>`_.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Functional Specification
+
+[TEXT]
+STATEMENT: >>>
+IEC 61508-2, D.2.1(a)
+
+The functional specification for the Zephyr kernel is maintained in the Zephyr project
+documentation and the software requirements specification:
+
+- `Kernel services <https://docs.zephyrproject.org/latest/kernel/services/index.html>`_
+  (threads, scheduling, synchronization, data passing, timers, interrupts)
+- `Memory management <https://docs.zephyrproject.org/latest/kernel/memory_management/index.html>`_
+- `User mode and memory protection <https://docs.zephyrproject.org/latest/kernel/usermode/index.html>`_
+- `Device driver model <https://docs.zephyrproject.org/latest/kernel/drivers/index.html>`_
+- `Software requirements (reqmgmt) <https://github.com/zephyrproject-rtos/reqmgmt>`_
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Element Configuration and Runtime Environment
+
+[TEXT]
+STATEMENT: >>>
+IEC 61508-3, D.2.3
+
+The Zephyr build system, supported toolchains, configuration system (Kconfig), and
+supported target architectures are documented in the Zephyr project documentation:
+
+- `Build system (CMake) <https://docs.zephyrproject.org/latest/build/cmake/index.html>`_
+- `Configuration system (Kconfig) <https://docs.zephyrproject.org/latest/build/kconfig/index.html>`_
+- `Devicetree <https://docs.zephyrproject.org/latest/build/dts/index.html>`_
+- `Supported toolchains <https://docs.zephyrproject.org/latest/develop/toolchains/index.html>`_
+- `West meta-tool <https://docs.zephyrproject.org/latest/develop/west/index.html>`_
+- `Supported architectures <https://docs.zephyrproject.org/latest/introduction/index.html>`_
+
+**Assumptions:**
+
+The safety justification depends on the following assumptions:
+
+1. The integrator uses an LTS release identified by its git tag.
+2. The integrator uses a supported and qualified toolchain.
+3. The target hardware is correctly described by its devicetree and board definition.
+4. Kconfig options are set within the constraints defined in this manual.
+5. The application does not bypass kernel APIs to access hardware directly unless
+   documented and justified.
+<<<
+
+[REQUIREMENT]
+UID: SM-1
+STATUS: Draft
+TITLE: Use of recommended configuration
+STATEMENT: >>>
+The integrator shall use the recommended configuration specified in this section, or
+document and justify any deviations.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Constraints on Use
+
+[TEXT]
+STATEMENT: >>>
+IEC 61508-2, D.2.1(c) & IEC 61508-3, D.2.4(l)
+
+The following constraints apply to the use of the Zephyr RTOS in safety-related systems:
+
+1. Only LTS releases shall be used for safety-related applications.
+
+2. Only the kernel subsystems within the defined certification scope shall be relied upon
+   for safety functions.
+
+3. Dynamic memory allocation (heap) should be avoided in safety-related code paths.
+   Where allocation is necessary, fixed-size slab allocators are preferred.
+
+4. The application shall not disable memory protection in the final deployed configuration
+   when the safety case depends on memory isolation.
+
+5. The integrator shall assess the impact of SMP on the safety case when
+   ``CONFIG_SMP`` is enabled.
+
+6. The integrator shall verify that worst-case execution times and interrupt response times
+   meet the application's timing requirements on the target hardware and configuration.
+
+7. The integrator shall use the Zephyr `hardening tool
+   <https://docs.zephyrproject.org/latest/security/hardening-tool.html>`_ and address
+   all recommendations for the deployed configuration.
+<<<
+
+[REQUIREMENT]
+UID: SM-2
+STATUS: Draft
+TITLE: Adherence to constraints on use
+STATEMENT: >>>
+The integrator shall ensure that the element is used only within the constraints specified
+in this section.
+<<<
+
+[REQUIREMENT]
+UID: SM-3
+STATUS: Draft
+TITLE: Validation of assumptions
+STATEMENT: >>>
+The integrator shall verify that all assumptions stated in this safety manual hold for the
+target application.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Degree of Reliance and Systematic Capability
+
+[TEXT]
+STATEMENT: >>>
+IEC 61508-3, D.2.4(b) & IEC 61508-2, D.2.3
+
+The claimed systematic capability, certification route, coding guidelines, test coverage
+targets, and architecture design principles are described in the
+`Zephyr safety overview <https://docs.zephyrproject.org/latest/safety/safety_overview.html>`_.
+
+The `coding guidelines <https://docs.zephyrproject.org/latest/contribute/coding_guidelines/index.html>`_
+are based on a subset of MISRA-C 2012.
+<<<
+
+[REQUIREMENT]
+UID: SM-4
+STATUS: Draft
+TITLE: Observance of systematic capability constraints
+STATEMENT: >>>
+The integrator shall observe all constraints necessary to achieve the claimed systematic
+capability.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Installation and Integration Instructions
+
+[TEXT]
+STATEMENT: >>>
+IEC 61508-3, D.2.4(c)
+
+For installation and build instructions, refer to the
+`Zephyr getting started guide <https://docs.zephyrproject.org/latest/develop/getting_started/index.html>`_.
+
+**Post-Installation Verification:**
+
+1. Run the hardening tool and verify that all security-relevant Kconfig options
+   meet the recommendations.
+2. Execute the Zephyr test suite for the target board and configuration.
+3. Verify the build output binary hash against a known-good reference if available.
+4. Confirm the VERSION file contents match the expected LTS release.
+<<<
+
+[REQUIREMENT]
+UID: SM-5
+STATUS: Draft
+TITLE: Execution of installation procedure
+STATEMENT: >>>
+The integrator shall follow the installation and integration procedure specified in this
+section.
+<<<
+
+[REQUIREMENT]
+UID: SM-6
+STATUS: Draft
+TITLE: Post-installation verification
+STATEMENT: >>>
+The integrator shall perform the post-installation verification steps specified in this
+section before placing the element into service.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Competence Requirements
+
+[TEXT]
+STATEMENT: >>>
+IEC 61508-3, D.2.4(a)
+
+The integrator shall have demonstrated competence in the following areas:
+
+- Embedded C programming and real-time operating system concepts.
+- The Zephyr build system: CMake, Kconfig, devicetree, and the ``west`` tool.
+- The target hardware architecture and its memory protection capabilities.
+- IEC 61508 lifecycle and the obligations placed on the integrator of a pre-developed
+  software element.
+- Use of the Zephyr test framework (``ztest``) and ``twister`` test runner.
+<<<
+
+[REQUIREMENT]
+UID: SM-7
+STATUS: Draft
+TITLE: Integrator competence
+STATEMENT: >>>
+The integrator shall possess the minimum competence and tool familiarity specified in this
+section.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Compatibility
+
+[TEXT]
+STATEMENT: >>>
+IEC 61508-3, D.2.4(f) & D.2.4(g)
+
+The Zephyr release cadence, LTS policy, supported releases, and backward compatibility
+guarantees are documented in the
+`Zephyr release process <https://docs.zephyrproject.org/latest/project/release_process.html>`_
+and `release notes <https://docs.zephyrproject.org/latest/releases/index.html>`_.
+
+Toolchain compatibility is validated per release and documented in the release notes. The
+Zephyr SDK version must match the Zephyr release.
+<<<
+
+[REQUIREMENT]
+UID: SM-8
+STATUS: Draft
+TITLE: Use of compatible tool chain
+STATEMENT: >>>
+The integrator shall use only the tool chain versions and runtime environments documented
+as compatible with the specific Zephyr release in use.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Configurable Elements
+
+[TEXT]
+STATEMENT: >>>
+IEC 61508-3, D.2.4(n)
+
+All kernel and subsystem configuration is performed through Kconfig symbols at build time.
+For a description of the configuration system and available options, refer to the
+`Kconfig documentation <https://docs.zephyrproject.org/latest/build/kconfig/index.html>`_.
+
+The Zephyr `hardening tool
+<https://docs.zephyrproject.org/latest/security/hardening-tool.html>`_ compares the
+current configuration against security recommendations and reports deviations.
+
+The integrator shall identify which Kconfig options are safety-relevant for their
+application and document the rationale for the chosen configuration.
+<<<
+
+[REQUIREMENT]
+UID: SM-9
+STATUS: Draft
+TITLE: Configuration within specified constraints
+STATEMENT: >>>
+The integrator shall configure the element only within the constraints specified in this
+manual and shall assess the impact of configuration changes on safety functions.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Safe State and Failure Behaviour
+
+[TEXT]
+STATEMENT: >>>
+IEC 61508-3, D.2.4(k)
+
+Zephyr provides a `fatal error handling framework
+<https://docs.zephyrproject.org/latest/kernel/services/other/fatal.html>`_. When a fatal
+error is detected, the kernel invokes the fatal error handler. The integrator may override
+this handler to implement an application-specific safe state transition.
+
+Stack overflow detection mechanisms and memory protection features are described in the
+`user mode documentation
+<https://docs.zephyrproject.org/latest/kernel/usermode/index.html>`_.
+
+Zephyr does not define application-level degraded modes. The integrator is responsible for
+defining degraded modes appropriate to the application safety concept.
+<<<
+
+[REQUIREMENT]
+UID: SM-10
+STATUS: Draft
+TITLE: Safe state handling
+STATEMENT: >>>
+The integrator shall ensure the application reaches the defined safe state in the event of a
+detected fault.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Security Measures
+
+[TEXT]
+STATEMENT: >>>
+IEC 61508-3, D.2.4(m)
+
+Zephyr's security architecture, execution protection, control flow integrity, vulnerability
+management process, and residual risks are described in the
+`security overview <https://docs.zephyrproject.org/latest/security/security-overview.html>`_.
+
+The `ETSI EN 303 645 self-assessment
+<https://docs.zephyrproject.org/latest/security/standards/etsi-303645.html>`_ provides a
+detailed compliance matrix.
+
+The `vulnerability reporting process
+<https://docs.zephyrproject.org/latest/security/reporting.html>`_ describes how to report
+security issues and the embargo/disclosure timeline.
+<<<
+
+[REQUIREMENT]
+UID: SM-11
+STATUS: Draft
+TITLE: Maintenance of security measures
+STATEMENT: >>>
+The integrator shall maintain the security measures specified in this section throughout the
+operational lifetime of the system.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Known Anomalies and Limitations
+
+[TEXT]
+STATEMENT: >>>
+IEC 61508-3, D.2.4(d), D.2.4(e) & D.2.4(j)
+
+Outstanding anomalies for the release in use are tracked in the
+`Zephyr GitHub issue tracker <https://github.com/zephyrproject-rtos/zephyr/issues>`_.
+The integrator shall review the issue tracker for the specific release tag and assess the
+impact of open issues on the safety case.
+
+Each Zephyr release includes release notes documenting new features, bug fixes, and known
+issues. LTS maintenance releases are published to address bugs and security vulnerabilities.
+See `release notes <https://docs.zephyrproject.org/latest/releases/index.html>`_.
+<<<
+
+[REQUIREMENT]
+UID: SM-12
+STATUS: Draft
+TITLE: Anomaly mitigation
+STATEMENT: >>>
+The integrator shall implement the specified mitigations for all outstanding anomalies
+relevant to the safety case.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Change Control
+
+[TEXT]
+STATEMENT: >>>
+IEC 61508-3, D.2.4(i)
+
+Changes to the Zephyr kernel are proposed via GitHub pull requests to the
+`upstream repository <https://github.com/zephyrproject-rtos/zephyr>`_. The safety scope
+change process is described in the
+`safety overview <https://docs.zephyrproject.org/latest/safety/safety_overview.html>`_.
+
+**Defect Reporting:**
+
+- General defects: https://github.com/zephyrproject-rtos/zephyr/issues
+- Security vulnerabilities: see `reporting process <https://docs.zephyrproject.org/latest/security/reporting.html>`_
+- Safety-related concerns: ``safety@lists.zephyrproject.org``
+<<<
+
+[REQUIREMENT]
+UID: SM-13
+STATUS: Draft
+TITLE: Reporting of defects
+STATEMENT: >>>
+The integrator shall report any defects or anomalies discovered during integration or
+operation using the procedure specified in this section.
+<<<
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Justification of Claims and Supporting Evidence
+
+[TEXT]
+STATEMENT: >>>
+IEC 61508-3, D.3
+
+The safety claims, certification approach, and supporting evidence are described in the
+`Zephyr safety overview <https://docs.zephyrproject.org/latest/safety/safety_overview.html>`_.
+
+**Supporting Evidence:**
+
+- `Software requirements (reqmgmt) <https://github.com/zephyrproject-rtos/reqmgmt>`_
+- `Safety overview <https://docs.zephyrproject.org/latest/safety/safety_overview.html>`_
+- `Coding guidelines <https://docs.zephyrproject.org/latest/contribute/coding_guidelines/index.html>`_
+- `Security overview <https://docs.zephyrproject.org/latest/security/security-overview.html>`_
+- `ETSI EN 303 645 self-assessment <https://docs.zephyrproject.org/latest/security/standards/etsi-303645.html>`_
+
+The Zephyr project is open source. All source code, requirements, test suites, and
+documentation are publicly available.
+
+Note (IEC 61508-3, D.3.3): If evidence cannot be made available to facilitate functional
+safety assessment, the element is not suitable for use in E/E/PE safety-related systems.
+<<<
+
+[[/SECTION]]
